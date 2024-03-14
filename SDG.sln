@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDG.Windows", "SDG.Windows\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDG", "SDG\SDG.csproj", "{7D856240-21E6-4089-BACB-B5BB82373188}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDG.Desktop", "SDG.Desktop\SDG.Desktop.csproj", "{C74CB876-1E4A-49C4-969C-F558EF26E3CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{7D856240-21E6-4089-BACB-B5BB82373188}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D856240-21E6-4089-BACB-B5BB82373188}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D856240-21E6-4089-BACB-B5BB82373188}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C74CB876-1E4A-49C4-969C-F558EF26E3CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C74CB876-1E4A-49C4-969C-F558EF26E3CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C74CB876-1E4A-49C4-969C-F558EF26E3CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C74CB876-1E4A-49C4-969C-F558EF26E3CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
