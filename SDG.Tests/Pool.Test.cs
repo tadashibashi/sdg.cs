@@ -2,9 +2,9 @@
 
 namespace SDG.Tests
 {
-    public class PoolTests
+    public class Pool
     {
-        public class TestEntity : IPoolable
+        private class TestEntity : IPoolable
         {
             public Id Id { get; set; }
 
@@ -43,11 +43,11 @@ namespace SDG.Tests
         [InlineData(0)]
         [InlineData(256)]
         [InlineData(1024)]
-        public void Pool_ExpandsAfterCreatingAllEntities(int initSize)
+        public void ExpandsAfterCreatingAllEntities(int initSize)
         {
             Pool<TestEntity> pool = new(initSize, () => new TestEntity());
 
-            for (int i = 0; i < pool.Count; ++i)
+            for (var i = 0; i < pool.Count; ++i)
             {
                 pool.CreateEntity();
             }
@@ -58,7 +58,7 @@ namespace SDG.Tests
         }
 
         [Fact]
-        public void Pool_InvalidatesDiscardedEntityIds()
+        public void InvalidatesDiscardedEntityIds()
         {
             const int initSize = 256;
             Pool<TestEntity> pool = new(initSize, () => new TestEntity());
@@ -71,25 +71,25 @@ namespace SDG.Tests
         }
 
         [Fact]
-        public void Pool_GeneratesUniqueIds()
+        public void GeneratesUniqueIds()
         {
             const int initSize = 256;
             Pool<TestEntity> pool = new(initSize, () => new TestEntity());
             HashSet<ulong> set = new(initSize);
 
-            for (int i = 0; i < initSize; ++i)
+            for (var i = 0; i < initSize; ++i)
             {
                 var entity = pool.CreateEntity();
-                set.Add(entity.Id.id);
+                set.Add(entity.Id.InnerId);
             }
 
             Assert.Equal(initSize, set.Count);
 
             pool.DiscardAll();
-            for (int i = 0; i < initSize; ++i)
+            for (var i = 0; i < initSize; ++i)
             {
                 var entity = pool.CreateEntity();
-                set.Add(entity.Id.id);
+                set.Add(entity.Id.InnerId);
             }
 
             Assert.Equal(initSize * 2, set.Count);

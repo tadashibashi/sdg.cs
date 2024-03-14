@@ -11,18 +11,18 @@ namespace SDG
     /// </summary>
     public struct Id
     {
-        public int index;
-        public int nextFreeIndex;
-        public ulong id;
+        public int Index;
+        public int NextFreeIndex;
+        public ulong InnerId;
 
-        public static readonly int NULL_INDEX = int.MaxValue;
-        public static readonly ulong NULL_ID = ulong.MaxValue;
+        public const int NullIndex = int.MaxValue;
+        public const ulong NullId = ulong.MaxValue;
 
         public Id()
         {
-            this.index = Id.NULL_INDEX;
-            this.nextFreeIndex = Id.NULL_INDEX;
-            id = Id.NULL_ID;
+            Index = Id.NullIndex;
+            NextFreeIndex = Id.NullIndex;
+            InnerId = Id.NullId;
         }
 
         public static bool operator ==(Id left, Id right)
@@ -37,23 +37,20 @@ namespace SDG
 
         public readonly override int GetHashCode()
         {
-            return (int)id;
+            return (int)InnerId;
         }
 
-        public readonly bool Equals(Id other)
+        private readonly bool Equals(Id other)
         {
-            return other.id == id;
+            return other.InnerId == InnerId;
         }
 
-        public override readonly bool Equals(object other)
+        public readonly override bool Equals(object other)
         {
             return other is Id id && Equals(id);
         }
 
-        public readonly bool IsNull
-        {
-            get { return id == Id.NULL_ID; }
-        }
+        public readonly bool IsNull => InnerId == Id.NullId;
     }
 
     public interface IPoolable
@@ -66,12 +63,12 @@ namespace SDG
     /// It does not keep track of "alive" entities, for which the responsibility is handed to the user.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Pool<T> where T : IPoolable
+    public class Pool<T> where T : class, IPoolable
     {
-        readonly List<T> _pool;
-        int _nextFreeIndex;
-        ulong _idCounter;
-        readonly Func<T> _entityFactory;
+        private readonly List<T> _pool;
+        private int _nextFreeIndex;
+        private ulong _idCounter;
+        private readonly Func<T> _entityFactory;
          
         /// <summary>
         /// 
@@ -82,14 +79,14 @@ namespace SDG
         {
             _pool = new List<T>(initSize);
 
-            _nextFreeIndex = initSize == 0 ? Id.NULL_INDEX : 0;
+            _nextFreeIndex = initSize == 0 ? Id.NullIndex : 0;
             _idCounter = 0;
             _entityFactory = entityFactory;
 
             Resize(initSize);
         }
 
-        public int Count { get => _pool.Count; }
+        public int Count => _pool.Count;
 
         private void Resize(int newSize)
         {
@@ -101,7 +98,7 @@ namespace SDG
             for (var i = currentSize; i < newSize; ++i)
             {
                 var t = _entityFactory();
-                t.Id = new Id { index = i, nextFreeIndex = i + 1, id = Id.NULL_ID };
+                t.Id = new Id { Index = i, NextFreeIndex = i + 1, InnerId = Id.NullId };
 
                 _pool.Add(t);
             }
@@ -109,17 +106,15 @@ namespace SDG
             // Set the last next free id to point to NULL_ID
             _pool[^1].Id = new Id
             {
-                    index = newSize - 1,
-                    id = _idCounter - 1,
-                    nextFreeIndex = Id.NULL_INDEX
+                    Index = newSize - 1,
+                    InnerId = _idCounter - 1,
+                    NextFreeIndex = Id.NullIndex
             };
         }
 
         public T GetEntityById(Id id)
         {
-            if (!CheckValid(id))
-                return default;
-            return _pool[id.index];
+            return CheckValid(id) ? _pool[id.Index] : default;
         }
 
         /// <summary>
@@ -128,7 +123,7 @@ namespace SDG
         /// <returns></returns>
         public T CreateEntity()
         {
-            if (_nextFreeIndex == Id.NULL_INDEX) // no more room, expand pool
+            if (_nextFreeIndex == Id.NullIndex) // no more room, expand pool
             {
                 var currentSize = _pool.Count;
                 Resize(currentSize * 2 + 1);
@@ -139,13 +134,13 @@ namespace SDG
 
             // retrieve next free entity, update its inner id
             var freeIndex = _nextFreeIndex;
-            var nextFreeIndex = _pool[freeIndex].Id.nextFreeIndex;
+            var nextFreeIndex = _pool[freeIndex].Id.NextFreeIndex;
 
             _pool[freeIndex].Id = new Id()
             {
-                index = _pool[freeIndex].Id.index,
-                nextFreeIndex = Id.NULL_INDEX, // discard this value since we've cached it
-                id = _idCounter++,
+                Index = _pool[freeIndex].Id.Index,
+                NextFreeIndex = Id.NullIndex, // discard this value since we've cached it
+                InnerId = _idCounter++,
             };
 
             _nextFreeIndex = nextFreeIndex;
@@ -155,7 +150,7 @@ namespace SDG
 
         public bool CheckValid(Id id)
         {
-            return !id.IsNull && _pool[id.index].Id == id;
+            return !id.IsNull && _pool[id.Index].Id == id;
         }
 
         /// <summary>
@@ -167,14 +162,14 @@ namespace SDG
         {
             if (!CheckValid(id)) return false;
 
-            _pool[id.index].Id = new Id()
+            _pool[id.Index].Id = new Id()
             {
-                id = Id.NULL_ID,
-                nextFreeIndex = _nextFreeIndex,
-                index = id.index,
+                InnerId = Id.NullId,
+                NextFreeIndex = _nextFreeIndex,
+                Index = id.Index,
             };
 
-            _nextFreeIndex = id.index;
+            _nextFreeIndex = id.Index;
             return true;
         }
 
@@ -189,18 +184,18 @@ namespace SDG
             {
                 _pool[i].Id = new Id()
                 {
-                    id = Id.NULL_ID,
-                    nextFreeIndex = i + 1,
-                    index = i
+                    InnerId = Id.NullId,
+                    NextFreeIndex = i + 1,
+                    Index = i
                 };
             }
 
             // alter last index to point to null next index
             _pool[^1].Id = new Id()
             {
-                id = Id.NULL_ID,
-                nextFreeIndex = Id.NULL_INDEX,
-                index = _pool.Count - 1,
+                InnerId = Id.NullId,
+                NextFreeIndex = Id.NullIndex,
+                Index = _pool.Count - 1,
             };
         }
     }

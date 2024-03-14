@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 
 namespace SDG
 {
-   
-
-    internal class EntityContext<T> where T : IPoolable
+    internal class EntityContext<T> where T : class, IPoolable
     {
         Dictionary<Type, int> _componentTypes;
         List<List<object>> _components;
