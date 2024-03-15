@@ -1,56 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SDG
 {
     /// <summary>
     /// Identifier, designed for Entity pools
     /// </summary>
-    public struct Id
+    public readonly record struct Id (
+        int Index = Id.NullIndex, 
+        int NextFreeIndex = Id.NullIndex, 
+        ulong InnerId = Id.NullId
+    )
     {
-        public int Index;
-        public int NextFreeIndex;
-        public ulong InnerId;
-
+        // constants
         public const int NullIndex = int.MaxValue;
         public const ulong NullId = ulong.MaxValue;
-
-        public Id()
-        {
-            Index = Id.NullIndex;
-            NextFreeIndex = Id.NullIndex;
-            InnerId = Id.NullId;
-        }
-
-        public static bool operator ==(Id left, Id right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(Id left, Id right)
-        {
-            return !left.Equals(right);
-        }
-
-        public readonly override int GetHashCode()
-        {
-            return (int)InnerId;
-        }
-
-        private readonly bool Equals(Id other)
-        {
-            return other.InnerId == InnerId;
-        }
-
-        public readonly override bool Equals(object other)
-        {
-            return other is Id id && Equals(id);
-        }
-
-        public readonly bool IsNull => InnerId == Id.NullId;
+        
+        // members functions
+        public bool IsNull => InnerId == NullId;
+        public bool Equals(Id other) => InnerId == other.InnerId;
+        public override int GetHashCode() => (int)InnerId;
     }
 
     public interface IPoolable
@@ -69,6 +38,8 @@ namespace SDG
         private int _nextFreeIndex;
         private ulong _idCounter;
         private readonly Func<T> _entityFactory;
+
+        public Action<int> PoolResized;
          
         /// <summary>
         /// 
@@ -84,6 +55,13 @@ namespace SDG
             _entityFactory = entityFactory;
 
             Resize(initSize);
+        }
+
+        public void Clear()
+        {
+            _pool.Clear();
+            _nextFreeIndex = Id.NullIndex;
+            PoolResized?.Invoke(0);
         }
 
         public int Count => _pool.Count;
@@ -104,14 +82,16 @@ namespace SDG
             }
 
             // Set the last next free id to point to NULL_ID
-            _pool[^1].Id = new Id
-            {
-                    Index = newSize - 1,
-                    InnerId = _idCounter - 1,
-                    NextFreeIndex = Id.NullIndex
-            };
-        }
+            _pool[^1].Id = _pool[^1].Id with { NextFreeIndex = Id.NullIndex };
 
+            PoolResized?.Invoke(newSize);
+        }
+        
+        /// <summary>
+        /// Get entity from its id (encouraged to store ids as they are lightweight structs)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public T GetEntityById(Id id)
         {
             return CheckValid(id) ? _pool[id.Index] : default;
@@ -128,31 +108,31 @@ namespace SDG
                 var currentSize = _pool.Count;
                 Resize(currentSize * 2 + 1);
 
-                _nextFreeIndex = currentSize;
-
+                _nextFreeIndex = currentSize; // update next free to first newly created entity's index
             }
 
             // retrieve next free entity, update its inner id
             var freeIndex = _nextFreeIndex;
             var nextFreeIndex = _pool[freeIndex].Id.NextFreeIndex;
 
-            _pool[freeIndex].Id = new Id()
+            _pool[freeIndex].Id = _pool[freeIndex].Id with
             {
-                Index = _pool[freeIndex].Id.Index,
-                NextFreeIndex = Id.NullIndex, // discard this value since we've cached it
-                InnerId = _idCounter++,
+                NextFreeIndex = Id.NullIndex, 
+                InnerId = _idCounter++
             };
 
             _nextFreeIndex = nextFreeIndex;
 
             return _pool[freeIndex];
         }
-
+        
+        
         public bool CheckValid(Id id)
         {
-            return !id.IsNull && _pool[id.Index].Id == id;
+            return !id.IsNull && _pool[id.Index].Id.InnerId == id.InnerId;
         }
 
+        
         /// <summary>
         /// Discard an entity back into the pool for reuse
         /// </summary>
@@ -173,6 +153,7 @@ namespace SDG
             return true;
         }
 
+        
         /// <summary>
         /// Discard all entities back to the pool, invalidating all current ids
         /// </summary>
