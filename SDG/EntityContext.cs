@@ -12,7 +12,7 @@ public delegate TEntity EntityFactory<TEntity>(EntityContext<TEntity> context) w
 public partial class EntityContext<TEntity> where TEntity : class, IPoolable
 {
     // ----- Sub-types -----
-    private enum CommandType { CreateEntity, DestroyEntity, AddComponent, RemoveComponent }
+    private enum CommandType { CreateEntity, DestroyEntity, NotifyAddedComponent, NotifyRemovedComponent }
     private readonly record struct Command(
         CommandType Type, Id Id, object Component, int TypeIndex);
         
@@ -73,6 +73,8 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
     public TEntity CreateEntity()
     {
         var e = _entities.CreateEntity();
+        
+        // defer command until post update
         _commandQueue.Add(new Command
         {
             Id = e.Id,
@@ -94,6 +96,7 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
     {
         if (!_entities.CheckValid(id)) return false;
             
+        // defer command until post update
         _commandQueue.Add(new Command
         {
             Id = id,
@@ -121,7 +124,10 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
     }
         
     
-    // Perform additions and removals, this should occur post update
+    /// <summary>
+    /// Perform deferred command queue, e.g. create/destroy entity, notifications, etc.
+    /// This should be called sometime post update
+    /// </summary>
     public void FlushCommands()
     {
         if (_commandQueue.Count == 0) return;
@@ -137,11 +143,11 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
                 case CommandType.DestroyEntity:
                     DestroyEntityImpl(command.Id);
                     break;
-                case CommandType.AddComponent:
-                    AddComponentImpl(command.Id, command.Component, command.TypeIndex);
+                case CommandType.NotifyAddedComponent:
+                    NotifyAddedComponentImpl(command.Id, command.Component, command.TypeIndex);
                     break;
-                case CommandType.RemoveComponent:
-                    RemoveComponentImpl(command.Id, command.TypeIndex);
+                case CommandType.NotifyRemovedComponent:
+                    NotifyRemovedComponentImpl(command.Id, command.TypeIndex);
                     break;
             }
         }
@@ -149,12 +155,13 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
         _commandQueue.Clear();
     }
 
-    /**
-     * Immediately clear all registered components, callbacks, entities, etc.
-     */
+    /// <summary>
+    /// Immediately clear all registered components, callbacks, entities, etc.
+    /// Note: this invalidates all groups created with EntityContext.Group and
+    /// should only be called when shutting down all ECS systems.
+    /// </summary>
     public void Clear()
     {
-        // Remove all component/entity references
         _registry.Clear();
         _indexes.Clear();
         ComponentAdded = null;
@@ -163,7 +170,13 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
         _components.Clear();
         _alive.Clear();
     }
-
+    
+    /// <summary>
+    /// Get a component of a sepcified type from an entity
+    /// </summary>
+    /// <param name="id">id of the entity to get the component from</param>
+    /// <typeparam name="TComponent">type of component to get</typeparam>
+    /// <returns>Component or `null`, if it doesn't exist on the entity</returns>
     public TComponent GetComponent<TComponent>(Id id) where TComponent : class
     {
         return _entities.CheckValid(id) && _registry.TryGetValue(typeof(TComponent), out var index) ?
@@ -178,7 +191,7 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
     /// <param name="component">component to add to the entity</param>
     /// <typeparam name="TComponent">type of component to add, must be a reference type/class</typeparam>
     /// <returns>
-    /// Whether command to add component succeeded, it may fail if entity is not valid or if a component of the same
+    /// Whether component add succeeded, it may fail if entity is not valid or if a component of the same
     /// type was already added to the entity. This is to prevent accidentally overwriting components, as each
     /// entity can only store one component of each unique class.
     /// </returns>
@@ -215,43 +228,49 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
         {
             return false;
         }
+        
+        _components[index][id.Index] = component;
             
         _commandQueue.Add(new Command
         {
             Id = id,
             Component = component,
             TypeIndex = index,
-            Type = CommandType.AddComponent
+            Type = CommandType.NotifyAddedComponent
         });
             
         return true;
     }
-        
+    
+    /// <summary>
+    /// Just notifies systems and those subscribed that a component was added, the actual work
+    /// is done in AddComponent. Called during EntityContext.FlushCommands.
+    /// </summary>
     /// <param name="id">id of the entity to add the component to</param>
     /// <param name="component">the component to add</param>
     /// <param name="index">index of the component type in the registry</param>
     /// <exception cref="Exception">
     ///     If a component of type `TComponent` has already been added to the entity
     /// </exception>
-    private void AddComponentImpl(Id id, object component, int index)
+    private void NotifyAddedComponentImpl(Id id, object component, int index)
     {
-        if (IsAlive(id))
+        if (IsAlive(id) && _components[index][id.Index] != null)
         {
-            _components[index][id.Index] = component;
             ComponentAdded?.Invoke(id, _indexes[index]);
         }
     }
-        
+    
     public bool RemoveComponent<TComponent>(Id id) where TComponent : class
     {
         if (_entities.CheckValid(id) && _registry.TryGetValue(typeof(TComponent), out var index) && 
             _components[index][id.Index] != null)
         {
+            _components[index][id.Index] = null;
             _commandQueue.Add(new Command
             {
                 Id = id,
                 TypeIndex = index,
-                Type = CommandType.RemoveComponent
+                Type = CommandType.NotifyRemovedComponent
             });
 
             return true;
@@ -259,12 +278,11 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
 
         return false;
     }
-
-    private void RemoveComponentImpl(Id id, int index)
+    
+    private void NotifyRemovedComponentImpl(Id id, int index)
     {
-        if (IsAlive(id))
+        if (IsAlive(id) && _components[index][id.Index] == null)
         {
-            _components[index][id.Index] = null;
             ComponentRemoved?.Invoke(id, _indexes[index]);
         }
 
