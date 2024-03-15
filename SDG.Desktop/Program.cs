@@ -1,2 +1,2 @@
-﻿using var game = new SDG.Core();
+﻿using var game = new SDG.TestScenes.EcsTest();
 game.Run();
