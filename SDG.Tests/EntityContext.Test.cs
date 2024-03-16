@@ -4,7 +4,7 @@ using Xunit;
 
 namespace SDG.Tests;
 
-public class EntityContext
+public class EntityContextTest
 {
     [Fact]
     public void CanCreateEntities()

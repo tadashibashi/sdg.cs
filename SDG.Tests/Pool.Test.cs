@@ -1,7 +1,7 @@
 ﻿using Xunit;
 namespace SDG.Tests;
 
-public class Pool
+public class PoolTest
 {
     private class TestEntity : IPoolable
     {
