@@ -29,7 +29,7 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
         {
             if (types.Contains(type) && getTuple(id, out var tup))
             {
-                _entities.Add(id, tup);
+                _entities.TryAdd(id, tup);
             }
         };
 
@@ -55,6 +55,8 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
             _handleComponentRemoved = null;
         }
     }
+
+    public int Count => _entities.Count;
 
     public bool Contains(TEntity entity)
     {
