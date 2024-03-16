@@ -25,6 +25,11 @@
     <ItemGroup>
       <ProjectReference Include="..\SDG\SDG.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <MonoGameContentReference Include="..\SDG\Content\SDG.Content.mgcb">
+        <Link>Content/SDG.Content.mgcb</Link>
+      </MonoGameContentReference>
+    </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>
         <Exec Command="dotnet tool restore"/>
