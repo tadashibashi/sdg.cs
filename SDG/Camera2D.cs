@@ -113,23 +113,23 @@ public class Camera2D
     /// <summary>
     /// Center the view on a position in world space. Sets the origin to center {X=0.5f, Y=0.5f}
     /// </summary>
-    /// <param name="position">Position in world space</param>
-    public void LookAt(Vector2 position)
+    /// <param name="positionInWorld">Position in world space</param>
+    public void LookAt(Vector2 positionInWorld)
     {
         Origin = new Vector2(0.5f, 0.5f);
-        Position = position;
+        Position = positionInWorld;
     }
 
-    public Vector2 ViewToWorld(Vector2 screen)
+    public Vector2 ViewToWorld(Vector2 positionInView)
     {
         ApplyChanges();
-        return Vector2.Transform(screen, _matrix);
+        return Vector2.Transform(positionInView, _invert);
     }
 
-    public Vector2 WorldToView(Vector2 world)
+    public Vector2 WorldToView(Vector2 positionInWorld)
     {
         ApplyChanges();
-        return Vector2.Transform(world, _invert);
+        return Vector2.Transform(positionInWorld, _matrix);
     }
 
     public Matrix Matrix

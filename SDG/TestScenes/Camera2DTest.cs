@@ -136,6 +136,18 @@ public class Camera2DTest : Game
                 _graphics.PreferredBackBufferHeight/2.0f - _textSize.Y/2.0f),
             Color.Gainsboro);
         _spriteBatch.End();
+        
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, 
+            BlendState.AlphaBlend, 
+            SamplerState.PointClamp, 
+            DepthStencilState.Default,
+            RasterizerState.CullNone);
+        var mousePosition = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
+        _spriteBatch.DrawString(_font, "Mouse Position: " + mousePosition.ToString(),
+            new Vector2(10, 10), Color.Black);
+        _spriteBatch.DrawString(_font, "World Position: " + _camera.ViewToWorld(mousePosition).ToString(),
+            new Vector2(10, 32), Color.Black);
+        _spriteBatch.End();
 
         base.Draw(gameTime);
     }
