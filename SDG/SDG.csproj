@@ -1,10 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <Folder Include="Assets\SDG\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Vendored\FNA\FNA.Core.csproj" />
+    <ProjectReference Include="..\Vendored\FontStashSharp\src\XNA\FontStashSharp.FNA.Core.csproj" />
   </ItemGroup>
 </Project>

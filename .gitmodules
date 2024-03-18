@@ -1,0 +1,6 @@
+[submodule "Vendored/FNA"]
+	path = Vendored/FNA
+	url = https://github.com/FNA-XNA/FNA
+[submodule "Vendored/FontStashSharp"]
+	path = Vendored/FontStashSharp
+	url = https://github.com/FontStashSharp/FontStashSharp

@@ -3,22 +3,15 @@ using Microsoft.Xna.Framework;
 
 namespace SDG;
 
+/// <summary>
+/// 2-Dimensional camera that supports translation, zoom/scale, and rotation
+/// </summary>
 public class Camera2D
 {
     private Matrix _matrix = Matrix.Identity;
     private Matrix _invert;
     private bool _isDirty = true;
-
-    /// <summary>
-    /// The minimum X and Y position that the camera can view
-    /// </summary>
-    public Vector2 BoundsMin { set; get; } = new();
-    
-    /// <summary>
-    /// The maximum X and Y position that the camera can view.
-    /// If less than the view port or screen, than the camera will prefer the greater value.
-    /// </summary>
-    public Vector2 BoundsMax { set; get; } = new();
+    private RectangleF? _worldBounds;
     
     /// <summary>
     /// Position of the camera
@@ -36,7 +29,12 @@ public class Camera2D
     }
     private Vector2 _position = Vector2.Zero;
     
-    
+    /// <summary>
+    /// Point in normalized view coordinates upon which the camera rotates and zooms in-out of.
+    /// This is also the point in the view of where the position is set.
+    /// The point is calculated as: Origin x Bounds.Size.
+    /// Default: {X:0.5f, Y: 0.5f}
+    /// </summary>
     public Vector2 Origin {
         set
         {
@@ -50,19 +48,27 @@ public class Camera2D
     }
     private Vector2 _origin = new Vector2(0.5f, 0.5f);
     
-    public Vector2 Size {
-        set
-        {
-            if (value != _size)
-            {
-                _isDirty = true;
-                _size = value;
-            }
-        }
-        get => _size;
-    }
-    private Vector2 _size = new Vector2(640, 480); // FIXME: auto set this to a viewport's size, once class setup
+    /// <summary>
+    /// Screen bounds of the camera view. This is set automatically if this camera is owned by a Viewport2D.
+    /// </summary>
+    public Rectangle ScreenBounds { get; set; }
     
+    public RectangleF WorldBounds
+    {
+        get
+        {
+            if (_worldBounds == null)
+            {
+                var pos = ViewToWorld(Vector2.Zero);
+                var size = ViewToWorld(new Vector2(ScreenBounds.Width, ScreenBounds.Height));
+                _worldBounds = new RectangleF(pos, size);
+
+            }
+
+            return _worldBounds.Value;
+        }
+    }
+
     public Vector2 Zoom {
         set
         {
@@ -88,23 +94,39 @@ public class Camera2D
         get => _rotation;
     }
     private float _rotation = 0;
+
+    /// <summary>
+    /// Relatively move the camera
+    /// </summary>
+    /// <param name="distance"></param>
+    /// <param name="degrees"></param>
+    public void Move(float distance, float degrees)
+    {
+        degrees -= _rotation;
+        const double constant = Math.PI / 180.0;
+        Position += new Vector2(
+            (float)Math.Cos(degrees * constant),
+            (float)Math.Sin(degrees * constant)
+        );
+    }
     
     /// <summary>
-    /// Center the view on a position in world space
+    /// Center the view on a position in world space. Sets the origin to center {X=0.5f, Y=0.5f}
     /// </summary>
     /// <param name="position">Position in world space</param>
     public void LookAt(Vector2 position)
     {
-        Position = (_size * 0.5f) - (_size * _origin) + position;
+        Origin = new Vector2(0.5f, 0.5f);
+        Position = position;
     }
 
-    public Vector2 ScreenToWorld(Vector2 screen)
+    public Vector2 ViewToWorld(Vector2 screen)
     {
         ApplyChanges();
         return Vector2.Transform(screen, _matrix);
     }
 
-    public Vector2 WorldToScreen(Vector2 world)
+    public Vector2 WorldToView(Vector2 world)
     {
         ApplyChanges();
         return Vector2.Transform(world, _invert);
@@ -126,10 +148,11 @@ public class Camera2D
         var matrix = Matrix.CreateTranslation(new Vector3(-_position, 0)) *
                      Matrix.CreateScale(new Vector3(_zoom, 1)) *
                      Matrix.CreateRotationZ(_rotation) *
-                     Matrix.CreateTranslation(new Vector3(_origin * _size, 0));
+                     Matrix.CreateTranslation(new Vector3(_origin.X * ScreenBounds.Width, _origin.Y * ScreenBounds.Height, 0));
 
         _matrix = matrix;
         _invert = Matrix.Invert(matrix);
         _isDirty = false;
+        _worldBounds = null;
     }
 }

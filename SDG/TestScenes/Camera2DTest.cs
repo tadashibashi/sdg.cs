@@ -1,3 +1,5 @@
+using System.IO;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -8,7 +10,7 @@ public class Camera2DTest : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    private SpriteFont _font;
+    private SpriteFontBase _font;
     private Vector2 _textSize;
     private Camera2D _camera;
 
@@ -24,17 +26,39 @@ public class Camera2DTest : Game
         base.Initialize();
     }
 
+    /// <summary>
+    /// Load font relative to Content/SDG/Fonts/
+    /// </summary>
+    /// <param name="filepath"></param>
+    /// <returns></returns>
+    private SpriteFontBase LoadBmpFont(string filepath)
+    {
+        var fontData = File.ReadAllText("Content/SDG/Fonts/" + filepath);
+        return  StaticSpriteFont.FromBMFont(fontData,
+            fileName => File.OpenRead("Content/SDG/Fonts/" + fileName),
+            _graphics.GraphicsDevice);
+    }
+    
+    private Texture2D LoadTexture(string filepath)
+    {
+        using var stream = TitleContainer.OpenStream(filepath);
+        return Texture2D.FromStream(GraphicsDevice, stream);
+    }
+
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _camera = new Camera2D
         {
             Origin = Vector2.Zero,
-            Size = new Vector2(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
+            ScreenBounds = GraphicsDevice.Viewport.Bounds,
+            Position = Vector2.Zero
         };
-        _font = Content.Load<SpriteFont>("Fonts/TestFont");
-        _textSize = _font.MeasureString("Hello Camera2D");
+
+        _font = LoadBmpFont("DefaultFont.fnt");
     }
+
+
 
     private Vector2 _camPosition;
         
@@ -99,7 +123,13 @@ public class Camera2DTest : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
         
         // Set the transform matrix here
-        _spriteBatch.Begin(transformMatrix: _camera.Matrix);
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, 
+            BlendState.AlphaBlend,
+            SamplerState.PointClamp,
+            DepthStencilState.Default, 
+            RasterizerState.CullNone, 
+            null, 
+            _camera.Matrix);
         _spriteBatch.DrawString(_font, "Hello Camera2D", 
             new Vector2(
                 _graphics.PreferredBackBufferWidth/2.0f - _textSize.X/2.0f, 

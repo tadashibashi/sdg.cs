@@ -34,15 +34,15 @@ public partial class EntityContext<TEntity> where TEntity : class, IPoolable
     // ----- Callbacks -----
     /// Broadcasted when a component is added / deleted, e.g. entity destroyed and has its components removed.
     /// To informs all relevant groups to update their internal state the next time user accesses it.
-    public Action<Id, Type> ComponentAdded;
+    public event Action<Id, Type> ComponentAdded;
 
-    public Action<Id, Type> ComponentRemoved;
+    public event Action<Id, Type> ComponentRemoved;
         
     /// Called right after an Entity is created
-    public Action<Id> EntityCreated;
+    public event Action<Id> EntityCreated;
         
     /// Called right before the entity has all its components discarded
-    public Action<Id> EntityDestroy;
+    public event Action<Id> EntityDestroy;
 
     // ----- Getters -----
     public IReadOnlyCollection<Id> AliveEntities => _alive;

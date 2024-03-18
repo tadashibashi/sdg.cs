@@ -9,7 +9,7 @@ public delegate bool EntityTupleGetter<TEntity, T>(Id id, out T tup)
 
 public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
 {
-    protected readonly Dictionary<Id, T> _entities;
+    protected readonly Dictionary<Id, T> Entities;
     
     private Action<Id, Type> _handleComponentAdded;
     private Action<Id, Type> _handleComponentRemoved;
@@ -22,14 +22,14 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
         EntityTupleGetter<TEntity, T> getTuple,
         IReadOnlySet<Type> types)
     {
-        _entities = new Dictionary<Id, T>();
+        Entities = new Dictionary<Id, T>();
         _context = context;
 
         _handleComponentAdded = (id, type) =>
         {
             if (types.Contains(type) && getTuple(id, out var tup))
             {
-                _entities.TryAdd(id, tup);
+                Entities.TryAdd(id, tup);
             }
         };
 
@@ -37,7 +37,7 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
         {
             if (types.Contains(type))
             {
-                _entities.Remove(id);
+                Entities.Remove(id);
             }
         };
 
@@ -56,7 +56,7 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
         }
     }
 
-    public int Count => _entities.Count;
+    public int Count => Entities.Count;
 
     public bool Contains(TEntity entity)
     {
@@ -65,17 +65,17 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
     
     private bool Contains(Id id)
     {
-        return _entities.ContainsKey(id);
+        return Entities.ContainsKey(id);
     }
 
     public IEnumerable<T> AsEnumerable()
     {
-        return _entities.Values;
+        return Entities.Values;
     }
 
     public Dictionary<Id, T>.ValueCollection.Enumerator GetEnumerator()
     {
-        return _entities.Values.GetEnumerator();
+        return Entities.Values.GetEnumerator();
     }
 }
 
@@ -89,7 +89,7 @@ public class EntityGroup<TEntity, T1> :
     {
         foreach (var tup in context.Find<T1>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
@@ -105,7 +105,7 @@ public class EntityGroup<TEntity, T1, T2> :
     {
         foreach (var tup in context.Find<T1, T2>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
@@ -123,7 +123,7 @@ public class EntityGroup<TEntity, T1, T2, T3> :
     {
         foreach (var tup in context.Find<T1, T2, T3>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
@@ -142,7 +142,7 @@ public class EntityGroup<TEntity, T1, T2, T3, T4> :
     {
         foreach (var tup in context.Find<T1, T2, T3, T4>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
@@ -162,7 +162,7 @@ public class EntityGroup<TEntity, T1, T2, T3, T4, T5> :
     {
         foreach (var tup in context.Find<T1, T2, T3, T4, T5>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
@@ -183,7 +183,7 @@ public class EntityGroup<TEntity, T1, T2, T3, T4, T5, T6> :
     {
         foreach (var tup in context.Find<T1, T2, T3, T4, T5, T6>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
@@ -208,7 +208,7 @@ public class EntityGroup<TEntity, T1, T2, T3, T4, T5, T6, T7> :
     {
         foreach (var tup in context.Find<T1, T2, T3, T4, T5, T6, T7>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
@@ -234,7 +234,7 @@ public class EntityGroup<TEntity, T1, T2, T3, T4, T5, T6, T7, T8> :
     {
         foreach (var tup in context.Find<T1, T2, T3, T4, T5, T6, T7, T8>())
         {
-            _entities.Add(tup.Item1.Id, tup);
+            Entities.Add(tup.Item1.Id, tup);
         }
     }
 }
