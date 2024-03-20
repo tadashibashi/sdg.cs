@@ -78,7 +78,7 @@ public class EntityGroupTest
                 .AddComponent(new Component3 { Data = "ABCDEF"});
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 
@@ -120,7 +120,7 @@ public class EntityGroupTest
                 .AddComponent(new Component3 { Data = "ABCDEF" });
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 
@@ -167,7 +167,7 @@ public class EntityGroupTest
                 .AddComponent(new Component4 { Data = "Pizzaaa!" });
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 
@@ -218,7 +218,7 @@ public class EntityGroupTest
                 .AddComponent(new Component5 { Data = "Pizzaaa!" });
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 
@@ -272,7 +272,7 @@ public class EntityGroupTest
                 .AddComponent(new Component6 { Data = "Taco" });
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 
@@ -330,7 +330,7 @@ public class EntityGroupTest
                 .AddComponent(new Component7 { Data = "Taco" });
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 
@@ -392,7 +392,7 @@ public class EntityGroupTest
                 .AddComponent(new Component8 { Data = "Taco" });
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 
@@ -458,7 +458,7 @@ public class EntityGroupTest
                 .AddComponent(new Component9 { Data = "Taco" });
         }
 
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(count, group.Count);
 

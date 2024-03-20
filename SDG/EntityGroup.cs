@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SDG;
 
-public delegate bool EntityTupleGetter<TEntity, T>(Id id, out T tup)
+public delegate bool EntityComponentGetter<TEntity, T>(Id id, out T tup)
     where TEntity : class, IPoolable;
 
 
@@ -13,13 +14,15 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
     
     private Action<Id, Type> _handleComponentAdded;
     private Action<Id, Type> _handleComponentRemoved;
+    private Action<Id> _handleEntityCreated;
+    private Action<Id> _handleEntityDestroyed;
 
     private readonly EntityContext<TEntity> _context;
     
     // Shouldn't be called directly, context will create this
     protected BaseEntityGroup(
         EntityContext<TEntity> context,
-        EntityTupleGetter<TEntity, T> getTuple,
+        EntityComponentGetter<TEntity, T> tryGetComponents,
         IReadOnlySet<Type> types)
     {
         Entities = new Dictionary<Id, T>();
@@ -27,7 +30,7 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
 
         _handleComponentAdded = (id, type) =>
         {
-            if (types.Contains(type) && getTuple(id, out var tup))
+            if (types.Contains(type) && tryGetComponents(id, out var tup))
             {
                 Entities.TryAdd(id, tup);
             }
@@ -41,8 +44,35 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
             }
         };
 
+        _handleEntityCreated = (id) =>
+        {
+            if (Entities.ContainsKey(id)) return;
+            
+            var matches = true;
+            foreach (var type in types)
+            {
+                if (!_context.HasComponent(id, type))
+                {
+                    matches = false;
+                    break;
+                }
+            }
+            
+            if (matches && tryGetComponents(id, out var tup))
+            {
+                Entities.Add(id, tup);
+            }
+        };
+
+        _handleEntityDestroyed = (id) =>
+        {
+            Entities.Remove(id);
+        };
+
         _context.ComponentAdded += _handleComponentAdded;
         _context.ComponentRemoved += _handleComponentRemoved;
+        _context.EntityCreated += _handleEntityCreated;
+        _context.EntityDestroy += _handleEntityDestroyed;
     }
 
     public void Dispose()
@@ -51,8 +81,13 @@ public class BaseEntityGroup<TEntity, T> where TEntity : class, IPoolable
         {
             _context.ComponentAdded -= _handleComponentAdded;
             _context.ComponentRemoved -= _handleComponentRemoved;
+            _context.EntityCreated -= _handleEntityCreated;
+            _context.EntityDestroy -= _handleEntityDestroyed;
+            
             _handleComponentAdded = null;
             _handleComponentRemoved = null;
+            _handleEntityCreated = null;
+            _handleEntityDestroyed = null;
         }
     }
 
