@@ -12,7 +12,7 @@ public class EntityContextTest
         EntityContext<Entity> context = new(256, (context) => new Entity(context));
 
         var entity = context.CreateEntity();
-        context.FlushCommands();
+        context.ApplyChanges();
         
         Assert.Equal(1, context.AliveEntityCount);
         Assert.True(entity.IsAlive);
@@ -59,7 +59,7 @@ public class EntityContextTest
             X = 10,
             Y = 10,
         });
-        ctx.FlushCommands();
+        ctx.ApplyChanges();
         Assert.Equal(1, ctx.ComponentTypeCount);
         
         e.AddComponent(new Tag
@@ -67,7 +67,7 @@ public class EntityContextTest
             Name = "Player",
             Group = "Actor"
         });
-        ctx.FlushCommands();
+        ctx.ApplyChanges();
         Assert.Equal(2, ctx.ComponentTypeCount);
     }
     
@@ -120,7 +120,7 @@ public class EntityContextTest
                 .AddComponent(new Tag { Name="Bob", Group="NPC" });
         }
 
-        ctx.FlushCommands();
+        ctx.ApplyChanges();
         
         Assert.Equal(3, ctx.AliveEntityCount);
 
@@ -179,7 +179,7 @@ public class EntityContextTest
                 .AddComponent(new Sprite { AtlasName = "Main", SubOrigin = new Rectangle(100, 200, 32, 32) });
         }
 
-        ctx.FlushCommands();
+        ctx.ApplyChanges();
         Assert.Equal(4, ctx.AliveEntityCount);
 
         var count = 0;
