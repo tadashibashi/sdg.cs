@@ -11,7 +11,7 @@ public static class MathExtensions
     }
 
     /// <summary>
-    /// Cast Vector2 to Point, flooring off any floating point precision
+    /// Cast Vector2 to Point, casting directly to integers, removing any floating point precision
     /// </summary>
     /// <param name="vector"></param>
     /// <returns></returns>
@@ -28,12 +28,14 @@ public static class MathExtensions
         return new Point((int)Math.Round(vector.X), (int)Math.Round(vector.Y));
     }
 
+    
+    private const double TwoPi = Math.PI * 2.0;
     /// <summary>
     /// Get the resulting angle from one vector to another
     /// </summary>
     public static float AngleTo(this Vector2 v, Vector2 other)
     {
-        return (float)Math.Atan2(v.X - other.X, v.Y - other.Y);
+        return (float)((Math.Atan2(other.X - v.X, v.Y - other.Y) + TwoPi) % TwoPi); // Y is flipped to match FNA coords
     }
 
     /// <summary>
@@ -41,15 +43,16 @@ public static class MathExtensions
     /// </summary>
     public static float DegreesTo(this Vector2 v, Vector2 other)
     {
-        return (float)MathHelper.ToDegrees(AngleTo(v, other));
+        return MathHelper.ToDegrees(AngleTo(v, other));
     }
 
+    
     /// <summary>
     /// Get the angle between one point and another
     /// </summary>
     public static float AngleTo(this Point p, Point other)
     {
-        return (float)Math.Atan2(p.X - other.X, p.Y - other.Y);
+        return (float)((Math.Atan2(other.X - p.X, p.Y - other.Y) + TwoPi) % TwoPi); // Y is flipped to match FNA coords
     }
     
     /// <summary>
@@ -72,10 +75,10 @@ public static class MathExtensions
         if (distance == 0) return v;
 
         var angle = MathHelper.ToRadians(degrees);
-        var x = (float)Math.Sin(angle) / distance; 
-        var y = (float)Math.Cos(angle) / distance;
+        var x = (float)Math.Sin(angle) * distance; 
+        var y = (float)Math.Cos(angle) * distance;
 
-        return new Vector2(v.X + x, v.Y + y);
+        return new Vector2(v.X + x, -(v.Y + y));
     }
     
     /// <summary>
@@ -90,7 +93,7 @@ public static class MathExtensions
         if (distance == 0) return v.X;
 
         var angle = MathHelper.ToRadians(degrees);
-        var x = (float)Math.Sin(angle) / distance;
+        var x = (float)Math.Sin(angle) * distance;
 
         return v.X + x;
     }
@@ -107,9 +110,9 @@ public static class MathExtensions
         if (distance == 0) return v.Y;
 
         var angle = MathHelper.ToRadians(degrees);
-        var y = (float)Math.Cos(angle) / distance;
+        var y = (float)Math.Cos(angle) * distance;
 
-        return v.Y + y;
+        return -(v.Y + y); // flip Y to match FNA coords
     }
     
     /// <summary>
@@ -125,10 +128,10 @@ public static class MathExtensions
         if (distance == 0) return p.ToVector2();
 
         var angle = MathHelper.ToRadians(degrees);
-        var x = (float)Math.Sin(angle) / distance; 
-        var y = (float)Math.Cos(angle) / distance;
+        var x = (float)Math.Sin(angle) * distance; 
+        var y = (float)Math.Cos(angle) * distance;
 
-        return new Vector2(p.X + x, p.Y + y);
+        return new Vector2(p.X + x, -(p.Y + y)); // flip y to match FNA coords
     }
     
     /// <summary>
@@ -143,7 +146,7 @@ public static class MathExtensions
         if (distance == 0) return p.X;
 
         var angle = MathHelper.ToRadians(degrees);
-        var x = (float)Math.Sin(angle) / distance;
+        var x = (float)Math.Sin(angle) * distance;
 
         return p.X + x;
     }
@@ -160,8 +163,8 @@ public static class MathExtensions
         if (distance == 0) return p.Y;
 
         var angle = MathHelper.ToRadians(degrees);
-        var y = (float)Math.Cos(angle) / distance;
+        var y = (float)Math.Cos(angle) * distance;
 
-        return p.Y + y;
+        return -(p.Y + y); // flip y to match FNA coords
     }
 }
