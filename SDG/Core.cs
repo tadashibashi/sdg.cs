@@ -7,23 +7,30 @@ namespace SDG
     public class Core : Game
     {
         private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
+        
+        private static Core _instance;
+        public static Core Instance => _instance;
+
+        public new SdgContentManager Content { get; private set; }
+        
+        public new GraphicsDevice GraphicsDevice => _graphics.GraphicsDevice;
 
         public Core()
         {
+            _instance = this;
             _graphics = new GraphicsDeviceManager(this);
-            Content.RootDirectory = "Content";
-            IsMouseVisible = true;
+            Content = new SdgContentManager(this);
         }
 
         protected override void Initialize()
         {
+
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
+            
         }
         
         protected override void Update(GameTime gameTime)
@@ -37,7 +44,6 @@ namespace SDG
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             base.Draw(gameTime);
         }
