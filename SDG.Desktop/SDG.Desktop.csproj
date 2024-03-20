@@ -22,11 +22,11 @@
       <ProjectReference Include="..\SDG\SDG.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <None Include="..\SDG\Assets\SDG\Fonts\DefaultFont.fnt">
+      <None Include="..\SDG\Content\SDG\Fonts\DefaultFont.fnt">
         <Link>Content/SDG/Fonts/DefaultFont.fnt</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Include="..\SDG\Assets\SDG\Fonts\DefaultFont_0.png">
+      <None Include="..\SDG\Content\SDG\Fonts\DefaultFont_0.png">
         <Link>Content/SDG/Fonts/DefaultFont_0.png</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

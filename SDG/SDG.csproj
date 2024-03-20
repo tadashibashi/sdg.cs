@@ -3,7 +3,7 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Assets\SDG\" />
+    <Folder Include="Content\SDG\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vendored\FNA\FNA.Core.csproj" />
