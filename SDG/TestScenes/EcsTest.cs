@@ -11,7 +11,7 @@ namespace SDG.TestScenes
     /// <summary>
     /// FIXME: Create a scene class to subclass and run this in the main Core class
     /// </summary>
-    public class EcsTest : Game
+    public class EcsTest : Core
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -90,10 +90,10 @@ namespace SDG.TestScenes
                         .AddComponent(new Sprite { AtlasName = "Main", SubOrigin = new Rectangle(100, 200, 32, 32) }));
                 }
             }
-            ctx.FlushCommands();
+            ctx.ApplyChanges();
             
             entities = ctx.Find<Tag, Position, Sprite>().ToList();
-            group = ctx.Group<Tag, Position, Sprite>();
+            group = new EntityGroup<Entity, Tag, Position, Sprite>(ctx);
         }
 
         private EntityGroup<Entity, Tag, Position, Sprite> group;
@@ -153,7 +153,7 @@ namespace SDG.TestScenes
                 }
             }
 
-            ctx.FlushCommands();
+            ctx.ApplyChanges();
             
             base.Update(gameTime);
         }
