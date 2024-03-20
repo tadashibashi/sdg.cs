@@ -1,48 +1,31 @@
+using System;
 using System.IO;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SDG.Systems;
 
 namespace SDG.TestScenes;
 
-public class Camera2DTest : Game
+public class Camera2DTest : Core
 {
-    private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private SpriteFontBase _font;
     private Vector2 _textSize;
     private Camera2D _camera;
 
+    private EntityContext<Entity> _entities;
+    private TextRenderer _textRenderer; 
+
     public Camera2DTest()
     {
-        _graphics = new GraphicsDeviceManager(this);
-        Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
 
     protected override void Initialize()
     {
         base.Initialize();
-    }
-
-    /// <summary>
-    /// Load font relative to Content/SDG/Fonts/
-    /// </summary>
-    /// <param name="filepath"></param>
-    /// <returns></returns>
-    private SpriteFontBase LoadBmpFont(string filepath)
-    {
-        var fontData = File.ReadAllText("Content/SDG/Fonts/" + filepath);
-        return  StaticSpriteFont.FromBMFont(fontData,
-            fileName => File.OpenRead("Content/SDG/Fonts/" + fileName),
-            _graphics.GraphicsDevice);
-    }
-    
-    private Texture2D LoadTexture(string filepath)
-    {
-        using var stream = TitleContainer.OpenStream(filepath);
-        return Texture2D.FromStream(GraphicsDevice, stream);
     }
 
     protected override void LoadContent()
@@ -55,17 +38,46 @@ public class Camera2DTest : Game
             Position = Vector2.Zero
         };
 
-        _font = LoadBmpFont("DefaultFont.fnt");
+        _entities = new EntityContext<Entity>(256, (ctx) => new Entity(ctx));
+        _font = Content.LoadBitmapFont("SDG/Fonts/DefaultFont.fnt");
+
+        {
+            var e = _entities.CreateEntity();
+            e.AddComponent(new TextComponent
+            {
+                CharSpacing = 0,
+                Colors = new[] {Color.Green, Color.Black, Color.Orange, Color.Blue, Color.YellowGreen},
+                Font = _font,
+                LineSpacing = 0,
+                Origin = new Vector2(0.5f, 0.5f),
+                Text = "Hello!!!"
+            });
+            e.AddComponent(new Transform2D
+            {
+                Depth = 0,
+                Position = new Vector2(100, 100),
+                Rotation = 90,
+                Scale = new Vector2(2.0f, 1.0f)
+            });
+        }
+
+        _textRenderer = new TextRenderer(_entities);
+        _entities.ApplyChanges();
     }
 
 
 
     private Vector2 _camPosition;
+    private Vector2 _quakeOffset;
+    
+    private Random _rand = new();
         
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
+        
+        _quakeOffset = new Vector2(_rand.NextSingle() * 2.0f, _rand.NextSingle() * 2.0f);
 
         float x = 0, y = 0;
         const float speed = 2.0f;
@@ -89,7 +101,7 @@ public class Camera2DTest : Game
             y += speed;
         }
         _camPosition += new Vector2(x, y);
-        _camera.LookAt(_camPosition);
+        _camera.LookAt(_camPosition + _quakeOffset);
 
         var zoom = 1.0f;
         if (Keyboard.GetState().IsKeyDown(Keys.X))
@@ -127,26 +139,28 @@ public class Camera2DTest : Game
             BlendState.AlphaBlend,
             SamplerState.PointClamp,
             DepthStencilState.Default, 
-            RasterizerState.CullNone, 
+            RasterizerState.CullCounterClockwise, 
             null, 
             _camera.Matrix);
         _spriteBatch.DrawString(_font, "Hello Camera2D", 
             new Vector2(
-                _graphics.PreferredBackBufferWidth/2.0f - _textSize.X/2.0f, 
-                _graphics.PreferredBackBufferHeight/2.0f - _textSize.Y/2.0f),
+                Window.ClientBounds.Width/2.0f - _textSize.X/2.0f, 
+                Window.ClientBounds.Height/2.0f - _textSize.Y/2.0f),
             Color.Gainsboro);
+        _textRenderer.Draw(_spriteBatch);
         _spriteBatch.End();
         
         _spriteBatch.Begin(SpriteSortMode.BackToFront, 
             BlendState.AlphaBlend, 
             SamplerState.PointClamp, 
             DepthStencilState.Default,
-            RasterizerState.CullNone);
+            RasterizerState.CullCounterClockwise);
         var mousePosition = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
         _spriteBatch.DrawString(_font, "Mouse Position: " + mousePosition.ToString(),
             new Vector2(10, 10), Color.Black);
         _spriteBatch.DrawString(_font, "World Position: " + _camera.ViewToWorld(mousePosition).ToString(),
             new Vector2(10, 32), Color.Black);
+
         _spriteBatch.End();
 
         base.Draw(gameTime);
