@@ -106,11 +106,16 @@ class TestSceneB : Scene
 public class SceneManagerTest : Core
 {
     private readonly Scene.Manager _scenes = new();
-    private bool _showingPauseMenu;
+    private bool _showingPauseMenu = false;
     private KeyboardState _lastKeyState;
 
     private SpriteBatch _spriteBatch;
 
+    public SceneManagerTest()
+    {
+        IsMouseVisible = true;
+    }
+    
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -130,14 +135,14 @@ public class SceneManagerTest : Core
             }
             else
             {
-                if (_scenes.CurrentScene.GetType() == typeof(TestSceneB))
+                if (_scenes.CurrentScene != null &&
+                    _scenes.CurrentScene.GetType() == typeof(TestSceneB))
                 {
                     _scenes.EndCurrentScene();
                     _showingPauseMenu = false;
                 }
 
             }
-            _showingPauseMenu = !_showingPauseMenu;
         }
         
         _scenes.Update(time);
