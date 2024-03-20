@@ -23,6 +23,16 @@ public class Viewport2D
 
     public event Action<Viewport> ViewportChanged;
 
+    public Vector2 ScreenToWorld(Vector2 screenPosition)
+    {
+        return Camera.ViewToWorld(screenPosition - new Vector2(_viewport.X, _viewport.Y));
+    }
+
+    public Vector2 WorldToScreen(Vector2 worldPosition)
+    {
+        return Camera.WorldToView(worldPosition - new Vector2(_viewport.X, _viewport.Y));
+    }
+
     public Viewport2D(Viewport viewport)
     {
         _viewport = viewport;
