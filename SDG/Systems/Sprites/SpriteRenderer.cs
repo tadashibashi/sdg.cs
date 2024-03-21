@@ -95,7 +95,7 @@ public class SpriteRenderer
 {
     private EntityGroup<Entity, SpriteComponent, Transform2D> _group;
         
-    public void Initialize(EntityContext<Entity> entities)
+    public void Initialize(EntityContext entities)
     {
         _group = new(entities);
     }

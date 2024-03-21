@@ -89,7 +89,7 @@ public class TextRenderer
 {
     private readonly EntityGroup<Entity, TextComponent, Transform2D> _renderables; 
     
-    public TextRenderer(EntityContext<Entity> entities)
+    public TextRenderer(EntityContext entities)
     {
         _renderables = new(entities);
     }

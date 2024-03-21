@@ -11,7 +11,7 @@ public class SpriteAtlasTest : Core
 {
     private readonly SpriteAtlas _atlas = new();
     private readonly SpriteRenderer _spriteRenderer = new();
-    private readonly EntityContext<Entity> _entities = new(256, ctx => new Entity(ctx));
+    private readonly EntityContext _entities = new();
     private SpriteBatch _spriteBatch;
     
     protected override void Initialize()
@@ -29,27 +29,27 @@ public class SpriteAtlasTest : Core
             _atlas["minecart/horizontal-1/1.png"], _atlas["minecart/horizontal-1/2.png"], 
             _atlas["minecart/horizontal-1/3.png"], _atlas["minecart/horizontal-1/4.png"]
         }, 5.0f);
-        // var rand = new Random();
-        // {
-        //     for (var i = 0; i < 1000; ++i)
-        //     {
-        //         _entities.CreateEntity()
-        //             .AddComponent(new Transform2D
-        //             {
-        //                 Position = new Vector2(rand.NextSingle() * (float)Window.ClientBounds.Width,
-        //                     rand.NextSingle() * (float)Window.ClientBounds.Height
-        //                 ),
-        //                 Scale = Vector2.One
-        //             })
-        //             .AddComponent(new SpriteComponent
-        //             {
-        //                 Sprite = sprite,
-        //                 Color = new Color(rand.NextSingle(), rand.NextSingle(), rand.NextSingle())
-        //             });
-        //
-        //     }
-        //
-        // }
+        var rand = new Random();
+        {
+            for (var i = 0; i < 1000; ++i)
+            {
+                _entities.CreateEntity()
+                    .AddComponent(new Transform2D
+                    {
+                        Position = new Vector2(rand.NextSingle() * (float)Window.ClientBounds.Width,
+                            rand.NextSingle() * (float)Window.ClientBounds.Height
+                        ),
+                        Scale = Vector2.One
+                    })
+                    .AddComponent(new SpriteComponent
+                    {
+                        Sprite = sprite,
+                        Color = new Color(rand.NextSingle(), rand.NextSingle(), rand.NextSingle())
+                    });
+        
+            }
+        
+        }
 
         _entities.CreateEntity()
             .AddComponent(new Transform2D())

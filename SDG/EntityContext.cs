@@ -10,6 +10,16 @@ namespace SDG;
 /// <typeparam name="TEntity">type of entity: must implement IPoolable and be a ref type</typeparam>
 public delegate TEntity EntityFactory<TEntity>(EntityContext<TEntity> context) where TEntity : class, IPoolable;
 
+/// <summary>
+/// Convenience class to create an entity context
+/// </summary>
+public class EntityContext : EntityContext<Entity>
+{
+    public EntityContext(int initPoolSize = 256) : base(initPoolSize, ctx => new Entity(ctx))
+    {
+    }
+}
+
 public partial class EntityContext<TEntity> where TEntity : class, IPoolable
 {
     // ----- Sub-types -----

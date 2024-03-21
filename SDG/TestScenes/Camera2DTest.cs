@@ -15,7 +15,7 @@ public class Camera2DTest : Core
     private Vector2 _textSize;
     private Camera2D _camera;
 
-    private EntityContext<Entity> _entities;
+    private EntityContext _entities;
     private TextRenderer _textRenderer;
 
     private TextComponent _text;
@@ -42,7 +42,7 @@ public class Camera2DTest : Core
             Position = Vector2.Zero
         };
 
-        _entities = new EntityContext<Entity>(256, (ctx) => new Entity(ctx));
+        _entities = new EntityContext();
         _font = Content.LoadBitmapFont("SDG/Fonts/DefaultFont.fnt");
 
         {
