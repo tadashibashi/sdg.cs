@@ -3,10 +3,13 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Content\SDG\" />
+    <Folder Include="Content\SDG\Sprites\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vendored\FNA\FNA.Core.csproj" />
     <ProjectReference Include="..\Vendored\FontStashSharp\src\XNA\FontStashSharp.FNA.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>
