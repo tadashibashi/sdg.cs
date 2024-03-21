@@ -16,11 +16,15 @@ public class Camera2DTest : Core
     private Camera2D _camera;
 
     private EntityContext<Entity> _entities;
-    private TextRenderer _textRenderer; 
+    private TextRenderer _textRenderer;
+
+    private TextComponent _text;
+    private Transform2D _transform;
 
     public Camera2DTest()
     {
         IsMouseVisible = true;
+        Window.Title = "Camera2D Test";
     }
 
     protected override void Initialize()
@@ -50,7 +54,8 @@ public class Camera2DTest : Core
                 Font = _font,
                 LineSpacing = 0,
                 Origin = new Vector2(0.5f, 0.5f),
-                Text = "Hello!!!"
+                Text = "Hello!!!",
+                StrokeWidth = 2,
             });
             e.AddComponent(new Transform2D
             {
@@ -59,6 +64,8 @@ public class Camera2DTest : Core
                 Rotation = 90,
                 Scale = new Vector2(2.0f, 1.0f)
             });
+            _text = e.GetComponent<TextComponent>();
+            _transform = e.GetComponent<Transform2D>();
         }
 
         _textRenderer = new TextRenderer(_entities);
@@ -126,6 +133,13 @@ public class Camera2DTest : Core
             rotate -= MathHelper.ToRadians(2.0f);
         }
         _camera.Rotation += rotate;
+
+        for (var i = 0; i < _text.Colors.Length; ++i)
+        {
+            _text.Colors[i] = new Color(_rand.NextSingle(), _rand.NextSingle(), _rand.NextSingle());
+        }
+
+        _transform.Rotation += 1;
             
         base.Update(gameTime);
     }

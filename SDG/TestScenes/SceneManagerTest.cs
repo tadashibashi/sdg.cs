@@ -154,7 +154,5 @@ public class SceneManagerTest : Core
     protected override void Draw(GameTime time)
     {
         _scenes.Draw(time, _spriteBatch);
-        
-        _scenes.ApplyChanges();
     }
 }
