@@ -42,6 +42,7 @@ public abstract class Scene
         public void Update(GameTime time)
         {
             CurrentScene?.Update(time);
+            ApplyChanges();
         }
 
         public void Draw(GameTime time, SpriteBatch batch)
