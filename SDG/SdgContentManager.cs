@@ -31,6 +31,13 @@ public class SdgContentManager : ContentManager
         }   
     }
     private GraphicsDevice _graphics;
+
+    private SdgContentManager _parent;
+
+    /// <summary>
+    /// Times an asset is referenced by children / self
+    /// </summary>
+    private readonly Dictionary<string, int> _assetRefCount;
     
     private Dictionary<string, object> _loadedAssets;
     private Dictionary<string, object> LoadedAssets {
@@ -53,10 +60,11 @@ public class SdgContentManager : ContentManager
         }
     }
 
-    public SdgContentManager(Core game, string rootDirectory = "Content") 
+    public SdgContentManager(Core game, SdgContentManager parent = null, string rootDirectory = "Content") 
         : base(game.Services, rootDirectory)
     {
-
+        _assetRefCount = new Dictionary<string, int>();
+        _parent = parent;
     }
 
     private string MakeAssetPath(string filepath)
@@ -68,15 +76,74 @@ public class SdgContentManager : ContentManager
     {
         var fullpath = MakeAssetPath(filepath);
         
-        // try to get cached texture first
-        if (LoadedAssets.TryGetValue(fullpath, out var outTexture))
+        // check our cache first
+        if (LoadedAssets.TryGetValue(fullpath, out var outAsset))
         {
-            return outTexture as Texture2D;
+            if (outAsset is Texture2D outTexture)
+            {
+                _assetRefCount[fullpath] += 1;
+                return outTexture;
+            }
         }
         
-        // load and cache texture
-        using var stream = TitleContainer.OpenStream(fullpath);
-        return (LoadedAssets[fullpath] = Texture2D.FromStream(GraphicsDevice, stream)) as Texture2D;
+        Texture2D texture;
+        
+        // get from parent if we have one
+        if (_parent != null)
+        {
+            texture = _parent.LoadTexture(filepath); // not fullpath
+        }
+        else
+        {
+            // no parent, and we haven't cached it yet, load texture ourselves
+            using var stream = TitleContainer.OpenStream(fullpath);
+            texture = Texture2D.FromStream(GraphicsDevice, stream);
+        }
+        
+        // cache and return texture
+        LoadedAssets[fullpath] = texture;
+        _assetRefCount[fullpath] = 1;
+        return texture;
+    }
+    
+    public SpriteFontBase LoadBitmapFont(string filepath)
+    {
+        var fullpath = MakeAssetPath(filepath);
+        
+        // check our cache first
+        if (LoadedAssets.TryGetValue(fullpath, out var outFont))
+        {
+            if (outFont is SpriteFontBase spriteFontBase)
+            {
+                _assetRefCount[fullpath] += 1;
+                return spriteFontBase;
+            }
+        }
+
+        SpriteFontBase font;
+        
+        // get from parent if we have one
+        if (_parent != null)
+        {
+            font = _parent.LoadBitmapFont(filepath); // not fullpath
+        }
+        else
+        {
+            // no parent, load it ourselves
+            using var stream = TitleContainer.OpenStream(fullpath);
+            using var reader = new StreamReader(stream);
+            var fontData = reader.ReadToEnd();
+
+            font = StaticSpriteFont.FromBMFont(fontData,
+                fileName => TitleContainer.OpenStream(
+                    Path.Combine( Path.GetDirectoryName(fullpath) ?? "", fileName)), 
+                GraphicsDevice);
+        }
+        
+        // cache and return font
+        LoadedAssets[fullpath] = font;
+        _assetRefCount[fullpath] = 1;
+        return font;
     }
 
     /// <summary>
@@ -85,20 +152,44 @@ public class SdgContentManager : ContentManager
     /// <param name="filepath"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public bool UnloadAsset<T>(string filepath) where T : class, IDisposable
+    public bool UnloadAsset(string filepath)
     {
         var fullpath = MakeAssetPath(filepath);
-        if (LoadedAssets.TryGetValue(fullpath, out var asset))
+
+        var dealtWith = false;
+        
+        // Let parent deal with it
+        if (_parent != null)
         {
-            if (asset is T disposable)
-            {
-                disposable.Dispose();
-                LoadedAssets.Remove(fullpath);
-                return true;
-            }
+            dealtWith = _parent.UnloadAsset(filepath);
         }
         
-        return false;
+        // Check if we own a reference
+        if (LoadedAssets.TryGetValue(fullpath, out var asset))
+        {
+            // we do, remove one
+            _assetRefCount[fullpath] -= 1;
+
+            // check if we've hit zero references
+            if (_assetRefCount[fullpath] <= 0)
+            {
+                // no parent has dealt with this unload, and we have a zero-reference count, we'll dispose of it
+                if (!dealtWith)
+                {
+                    if (asset is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+
+                LoadedAssets.Remove(fullpath);
+                _assetRefCount.Remove(fullpath);
+            }
+            
+            return true;
+        }
+        
+        return dealtWith;
     }
     
     /// <summary>
@@ -106,38 +197,13 @@ public class SdgContentManager : ContentManager
     /// </summary>
     public override void Unload()
     {
-        foreach (var (key, value) in LoadedAssets)
+        foreach (var key in LoadedAssets.Keys)
         {
-            if (value is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+            UnloadAsset(key);
         }
-
-        LoadedAssets.Clear();
+        
+        // (we may still have references left over from children, don't fully clean up by clearing the LoadedAssets)
+        
         base.Unload();
-    }
-
-    public SpriteFontBase LoadBitmapFont(string filepath)
-    {
-        var fullpath = MakeAssetPath(filepath);
-        if (LoadedAssets.TryGetValue(fullpath, out var outFont))
-        {
-            if (outFont is SpriteFontBase spriteFontBase)
-                return spriteFontBase;
-            return null;
-        }
-
-        using var stream = TitleContainer.OpenStream(fullpath);
-        using var reader = new StreamReader(stream);
-        var fontData = reader.ReadToEnd();
-
-        var font = StaticSpriteFont.FromBMFont(fontData,
-            fileName => TitleContainer.OpenStream(
-                Path.Combine( Path.GetDirectoryName(fullpath) ?? "", fileName)), 
-            GraphicsDevice);
-
-        LoadedAssets[fullpath] = font;
-        return font;
     }
 }
