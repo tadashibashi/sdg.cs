@@ -110,9 +110,9 @@ public class SpriteRenderer
         var deltaSeconds = (float)time.ElapsedGameTime.TotalSeconds;
         foreach (var (e, sprite, transform) in _group)
         {
+            if (sprite.Paused) continue;
+            
             sprite.Index = Mathf.Modf(sprite.Index + sprite.Speed * deltaSeconds * sprite.Sprite.FrameRate, sprite.Sprite.Length);
-            
-            
         }
     }
 
@@ -122,11 +122,29 @@ public class SpriteRenderer
         {
             if (sprite.Sprite.Length == 0) continue;
             var frame = sprite.CurrentFrame;
+
+            // Must swap X/Y scale when rotated
+            var scale = frame.Rotated ? new Vector2(transform.Scale.Y, transform.Scale.X) : transform.Scale;
+            
+            // Use built-in sprite effect flip for negative scale values
+            var effects = SpriteEffects.None;
+            if (scale.X < 0)
+            {
+                effects |= SpriteEffects.FlipHorizontally;
+                scale.X = -scale.X;
+            }
+
+            if (scale.Y < 0)
+            {
+                effects |= SpriteEffects.FlipVertically;
+                scale.Y = -scale.Y;
+            }
             
             batch.Draw(frame.Texture, transform.Position, frame.Frame, sprite.Color, 
                 MathHelper.ToRadians(transform.Rotation + (frame.Rotated ? -90 : 0)), 
-                frame.Pivot, transform.Scale,
-                SpriteEffects.None, transform.Depth);
+                frame.Pivot, 
+                scale,
+                effects, transform.Depth);
         }
     }
 }

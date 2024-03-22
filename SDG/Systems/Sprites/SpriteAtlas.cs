@@ -185,7 +185,7 @@ public class SpriteAtlas
                             ? new Rectangle(frame.Frame.X, frame.Frame.Y, frame.Frame.H, frame.Frame.W)
                             : new Rectangle(frame.Frame.X, frame.Frame.Y, frame.Frame.W, frame.Frame.H);
                         var pivot = frame.Rotated
-                            ? new Vector2(frameRect.Width + frame.SpriteSourceSize.Y - frame.Pivot.Y * frame.SourceSize.H, frame.Pivot.X * frame.SourceSize.W - frame.SpriteSourceSize.X)
+                            ? new Vector2(frame.Frame.H + frame.SpriteSourceSize.Y - frame.Pivot.Y * frame.SourceSize.H, frame.Pivot.X * frame.SourceSize.W - frame.SpriteSourceSize.X)
                             : new Vector2(frame.Pivot.X * frame.SourceSize.W - frame.SpriteSourceSize.X, frame.Pivot.Y * frame.SourceSize.H - frame.SpriteSourceSize.Y);
                             
                         dict.TryAdd(key, 

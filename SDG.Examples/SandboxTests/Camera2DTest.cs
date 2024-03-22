@@ -6,13 +6,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SDG.Systems;
 
-namespace SDG.TestScenes;
+namespace SDG.Examples;
 
 public class Camera2DTest : Core
 {
     private SpriteBatch _spriteBatch;
     private SpriteFontBase _font;
-    private Vector2 _textSize;
     private Camera2D _camera;
 
     private EntityContext _entities;
@@ -158,8 +157,8 @@ public class Camera2DTest : Core
             _camera.Matrix);
         _spriteBatch.DrawString(_font, "Hello Camera2D", 
             new Vector2(
-                Window.ClientBounds.Width/2.0f - _textSize.X/2.0f, 
-                Window.ClientBounds.Height/2.0f - _textSize.Y/2.0f),
+                Window.ClientBounds.Width/2.0f - _text.Size.X/2.0f, 
+                Window.ClientBounds.Height/2.0f - _text.Size.Y/2.0f),
             Color.Gainsboro);
         _textRenderer.Draw(_spriteBatch);
         _spriteBatch.End();

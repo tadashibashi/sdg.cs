@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace SDG.TestScenes;
+namespace SDG.Examples;
 
 class TestSceneA : Scene
 {
@@ -76,7 +76,8 @@ class TestSceneB : Scene
 
     protected override void Start()
     {
-        Console.WriteLine("TestSceneB started!");
+        Console.WriteLine("Scene TestSceneB starting. Last scene was {0}", 
+            Scenes.CurrentScene.GetType().Name);
     }
 
     protected override void Update(GameTime time)

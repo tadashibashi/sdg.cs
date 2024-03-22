@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using SDG.Systems;
 using SDG.Systems.Sprites;
 
-namespace SDG.TestScenes;
+namespace SDG.Examples;
 
 public class SpriteAtlasTest : Core
 {
@@ -50,6 +50,8 @@ public class SpriteAtlasTest : Core
             }
         
         }
+        
+        Console.WriteLine(_atlas["minecart/horizontal-1/1.png"].Pivot);
 
         _entities.CreateEntity()
             .AddComponent(new Transform2D())
@@ -74,9 +76,9 @@ public class SpriteAtlasTest : Core
             if (keyboard.IsKeyDown(Keys.Up))
                 tf.Position += new Vector2(0, -2);
             if (keyboard.IsKeyDown(Keys.X))
-                tf.Scale += new Vector2(0.1f, 0.1f);
+                tf.Scale += new Vector2(0.1f, 0);
             if (keyboard.IsKeyDown(Keys.Z))
-                tf.Scale -= new Vector2(0.1f, 0.1f);
+                tf.Scale -= new Vector2(0.1f, 0);
         }
         
         _entities.ApplyChanges();

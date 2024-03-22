@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace SDG.TestScenes
+namespace SDG.Examples
 {
     /// <summary>
     /// FIXME: Create a scene class to subclass and run this in the main Core class

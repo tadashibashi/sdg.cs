@@ -7,7 +7,7 @@
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":8,"w":16,"h":21},
 	"sourceSize": {"w":16,"h":32},
-	"pivot": {"x":0.5,"y":0}
+	"pivot": {"x":0.5,"y":0.5}
 },
 "minecart/horizontal-1/2.png":
 {
@@ -16,7 +16,7 @@
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":9,"w":16,"h":20},
 	"sourceSize": {"w":16,"h":32},
-	"pivot": {"x":0.5,"y":0}
+	"pivot": {"x":0.5,"y":0.5}
 },
 "minecart/horizontal-1/3.png":
 {
@@ -25,7 +25,7 @@
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":9,"w":16,"h":20},
 	"sourceSize": {"w":16,"h":32},
-	"pivot": {"x":0.5,"y":0}
+	"pivot": {"x":0.5,"y":0.5}
 },
 "minecart/horizontal-1/4.png":
 {
@@ -34,7 +34,7 @@
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":8,"w":16,"h":21},
 	"sourceSize": {"w":16,"h":32},
-	"pivot": {"x":0.5,"y":0}
+	"pivot": {"x":0.5,"y":0.5}
 },
 "minecart/horizontal-2/1.png":
 {
@@ -151,6 +151,6 @@
 	"format": "RGBA8888",
 	"size": {"w":63,"h":108},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:12fccdbc9e7598371b661131d60fa517:7b4af94cbf564ce267f47206d0618053:6cc8953523e0367402f95f3c9a630665$"
+	"smartupdate": "$TexturePacker:SmartUpdate:b3a3352e49d7c60b2ee1296d4ba385f5:7b4af94cbf564ce267f47206d0618053:6cc8953523e0367402f95f3c9a630665$"
 }
 }
