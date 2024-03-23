@@ -106,14 +106,15 @@ class TestSceneB : Scene
 
 public class SceneManagerTest : Core
 {
-    private readonly Scene.Manager _scenes = new();
-    private bool _showingPauseMenu = false;
+    private readonly Scene.Manager _scenes;
+    private bool _showingPauseMenu;
     private KeyboardState _lastKeyState;
 
     private SpriteBatch _spriteBatch;
 
     public SceneManagerTest()
     {
+        _scenes = new Scene.Manager(this);
         IsMouseVisible = true;
     }
     
