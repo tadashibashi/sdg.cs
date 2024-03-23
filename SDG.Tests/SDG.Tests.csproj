@@ -20,4 +20,29 @@
     <ProjectReference Include="..\SDG\SDG.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Content\" />
+  </ItemGroup>
+  
+  <!-- Copy content  -->
+  <Target Name="Copy Content" AfterTargets="Build">
+    <ItemGroup>
+      <SDGContent Include="..\SDG\Content\**\*.*" >
+        <InProject>false</InProject>
+      </SDGContent>
+      <ProjectContent Include=".\Content\**\*.*" >
+        <InProject>true</InProject>
+      </ProjectContent>
+    </ItemGroup>
+    <Copy
+            SourceFiles="@(SDGContent)"
+            DestinationFolder="$(OutputPath)\Content\%(RecursiveDir)"
+            SkipUnchangedFiles="true"
+    />
+    <Copy
+            SourceFiles="@(ProjectContent)"
+            DestinationFolder="$(OutputPath)\Content\%(RecursiveDir)"
+            SkipUnchangedFiles="true"
+    />
+  </Target>
 </Project>
