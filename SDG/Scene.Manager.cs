@@ -32,8 +32,12 @@ public abstract partial class Scene
         private readonly Stack<Scene> _current = new();
         private readonly List<SceneCommand> _commands = new();
         private readonly Dictionary<Type, object> _services = new();
+        private readonly Core _engine;
         
-
+        public Manager(Core engine)
+        {
+            _engine = engine;
+        }
 
         /// <summary>
         /// Provide a service to the Scene.Manager that can later be retrieved by scenes with GetService
@@ -78,7 +82,8 @@ public abstract partial class Scene
         {
             var scene = new T
             {
-                Scenes = this
+                Scenes = this,
+                Content = new SdgContentManager(_engine, _engine.Content)
             };
 
             _commands.Add(new SceneCommand(CommandType.Start, scene, stopCurrentScene));
@@ -144,7 +149,8 @@ public abstract partial class Scene
                         if (_current.Count > 0 && _current.Peek() == command.Scene)
                         {
                             // end scene and remove it
-                            _current.Pop().End();
+                            var currentScene =_current.Pop();
+                            currentScene.Content.Unload();
                             
                             // now check if there are any underlying scenes to notify it is resumed
                             if (_current.Count > 0)

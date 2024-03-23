@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -32,7 +29,7 @@ public class SdgContentManager : ContentManager
     }
     private GraphicsDevice _graphics;
 
-    private SdgContentManager _parent;
+    private readonly SdgContentManager _parent;
 
     /// <summary>
     /// Times an asset is referenced by children / self
@@ -59,9 +56,17 @@ public class SdgContentManager : ContentManager
             return _loadedAssets;
         }
     }
-
-    public SdgContentManager(Core game, SdgContentManager parent = null, string rootDirectory = "Content") 
-        : base(game.Services, rootDirectory)
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="engine">Engine to receive services from</param>
+    /// <param name="parent">Parent content manager to cache with, or null if none</param>
+    /// <param name="rootDirectory">
+    /// Root content directory. All load functions will prepend this directory to each filename.
+    /// </param>
+    public SdgContentManager(Core engine, SdgContentManager parent = null, string rootDirectory = "Content") 
+        : base(engine.Services, rootDirectory)
     {
         _assetRefCount = new Dictionary<string, int>();
         _parent = parent;
@@ -72,103 +77,105 @@ public class SdgContentManager : ContentManager
         return Path.Combine(RootDirectory, filepath);
     }
 
-    public Texture2D LoadTexture(string filepath)
+    /// <summary>
+    /// Get the number of times an SdgContentManager has referenced a particular asset between itself and its children.
+    /// This is mainly for debugging.
+    /// </summary>
+    /// <param name="filepath">path to the asset</param>
+    /// <returns>Number of times asset at the path was referenced by an SdgContentManager</returns>
+    public int RefCountOf(string filepath)
+    {
+        var fullpath = MakeAssetPath(filepath);
+        return _assetRefCount.GetValueOrDefault(fullpath, 0);
+    }
+
+    private T LoadAsset<T>(string filepath, Func<SdgContentManager, string, T> loadAssetFromPath) where T : class
     {
         var fullpath = MakeAssetPath(filepath);
         
-        // check our cache first
-        if (LoadedAssets.TryGetValue(fullpath, out var outAsset))
+        // check cache first
+        if (LoadedAssets.TryGetValue(fullpath, out var outAsset)
+            && outAsset is T outT)
         {
-            if (outAsset is Texture2D outTexture)
-            {
-                _assetRefCount[fullpath] += 1;
-                return outTexture;
-            }
+            _assetRefCount[fullpath] += 1;
+            return outT;
         }
         
-        Texture2D texture;
+        // get asset from parent if we have one, otherwise load it ourselves
+        var asset = (_parent == null) ? 
+            loadAssetFromPath(this, fullpath) : 
+            _parent.LoadAsset(filepath, loadAssetFromPath);
         
-        // get from parent if we have one
-        if (_parent != null)
-        {
-            texture = _parent.LoadTexture(filepath); // not fullpath
-        }
-        else
-        {
-            // no parent, and we haven't cached it yet, load texture ourselves
-            using var stream = TitleContainer.OpenStream(fullpath);
-            texture = Texture2D.FromStream(GraphicsDevice, stream);
-        }
-        
-        // cache and return texture
-        LoadedAssets[fullpath] = texture;
+        // cache and return
+        LoadedAssets[fullpath] = asset;
         _assetRefCount[fullpath] = 1;
-        return texture;
+
+        return asset;
+    }
+
+    /// <summary>
+    /// Load a texture from an image file
+    /// </summary>
+    /// <param name="filepath">Path to the image file</param>
+    /// <returns>Texture2D object with image data</returns>
+    public Texture2D LoadTexture(string filepath)
+    {
+        return LoadAsset(filepath, LoadTextureImpl);
+    }
+
+    private static Texture2D LoadTextureImpl(SdgContentManager content, string fullpath)
+    {
+        using var stream = TitleContainer.OpenStream(fullpath);
+        return Texture2D.FromStream(content.GraphicsDevice, stream);
     }
     
     public SpriteFontBase LoadBitmapFont(string filepath)
     {
-        var fullpath = MakeAssetPath(filepath);
-        
-        // check our cache first
-        if (LoadedAssets.TryGetValue(fullpath, out var outFont))
-        {
-            if (outFont is SpriteFontBase spriteFontBase)
-            {
-                _assetRefCount[fullpath] += 1;
-                return spriteFontBase;
-            }
-        }
+        return LoadAsset(filepath, LoadBitmapFontImpl);
+    }
 
-        SpriteFontBase font;
+    private static SpriteFontBase LoadBitmapFontImpl(SdgContentManager content, string fullpath)
+    {
+        // Open stream, convert to text string
+        using var stream = TitleContainer.OpenStream(fullpath);
+        using var reader = new StreamReader(stream);
         
-        // get from parent if we have one
-        if (_parent != null)
-        {
-            font = _parent.LoadBitmapFont(filepath); // not fullpath
-        }
-        else
-        {
-            // no parent, load it ourselves
-            using var stream = TitleContainer.OpenStream(fullpath);
-            using var reader = new StreamReader(stream);
-            var fontData = reader.ReadToEnd();
+        var fontData = reader.ReadToEnd();
+        
+        // Load the font
+        return StaticSpriteFont.FromBMFont(fontData,
+            fileName => TitleContainer.OpenStream(
+                Path.Combine( Path.GetDirectoryName(fullpath) ?? "", fileName)), 
+            content.GraphicsDevice);
+    }
 
-            font = StaticSpriteFont.FromBMFont(fontData,
-                fileName => TitleContainer.OpenStream(
-                    Path.Combine( Path.GetDirectoryName(fullpath) ?? "", fileName)), 
-                GraphicsDevice);
-        }
-        
-        // cache and return font
-        LoadedAssets[fullpath] = font;
-        _assetRefCount[fullpath] = 1;
-        return font;
+    public bool UnloadAsset(string filepath)
+    {
+        return UnloadAssetFullpath(MakeAssetPath(filepath));
     }
 
     /// <summary>
     /// Unload a single content item
     /// </summary>
-    /// <param name="filepath"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public bool UnloadAsset(string filepath)
+    /// <param name="fullpath"></param>
+    /// <returns>
+    /// Whether or not asset was dealt with. False means this manager doesn't own content at that path
+    /// </returns>
+    private bool UnloadAssetFullpath(string fullpath)
     {
-        var fullpath = MakeAssetPath(filepath);
-
-        var dealtWith = false;
-        
-        // Let parent deal with it
-        if (_parent != null)
-        {
-            dealtWith = _parent.UnloadAsset(filepath);
-        }
-        
         // Check if we own a reference
         if (LoadedAssets.TryGetValue(fullpath, out var asset))
         {
             // we do, remove one
             _assetRefCount[fullpath] -= 1;
+            
+            var dealtWith = false;
+        
+            // Let parent deal with it
+            if (_parent != null)
+            {
+                dealtWith = _parent.UnloadAssetFullpath(fullpath);
+            }
 
             // check if we've hit zero references
             if (_assetRefCount[fullpath] <= 0)
@@ -188,8 +195,8 @@ public class SdgContentManager : ContentManager
             
             return true;
         }
-        
-        return dealtWith;
+
+        return false;
     }
     
     /// <summary>
@@ -199,11 +206,7 @@ public class SdgContentManager : ContentManager
     {
         foreach (var key in LoadedAssets.Keys)
         {
-            UnloadAsset(key);
+            UnloadAssetFullpath(key);
         }
-        
-        // (we may still have references left over from children, don't fully clean up by clearing the LoadedAssets)
-        
-        base.Unload();
     }
 }
