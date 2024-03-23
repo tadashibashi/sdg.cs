@@ -5,7 +5,7 @@
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
-        <RootNamespace>SDG.Desktop</RootNamespace>
+        <RootNamespace>SDG.Examples</RootNamespace>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -44,30 +44,4 @@
                 SkipUnchangedFiles="true"
         />
     </Target>
-
-
-<!--    <ItemGroup>-->
-<!--      <None Include="..\SDG\Content\SDG\Fonts\DefaultFont.fnt">-->
-<!--        <Link>Content/SDG/Fonts/DefaultFont.fnt</Link>-->
-<!--        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>-->
-<!--      </None>-->
-<!--      <None Include="..\SDG\Content\SDG\Fonts\DefaultFont_0.png">-->
-<!--        <Link>Content/SDG/Fonts/DefaultFont_0.png</Link>-->
-<!--        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>-->
-<!--      </None>-->
-<!--    </ItemGroup>-->
-<!--    <ItemGroup>-->
-<!--      <None Include="..\SDG\Content\SDG\Sprites\sprite_sheet.json">-->
-<!--        <Link>Content\SDG\Sprites\sprite_sheet.json</Link>-->
-<!--        <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
-<!--      </None>-->
-<!--      <None Include="..\SDG\Content\SDG\Sprites\sprite_sheet.png">-->
-<!--        <Link>Content\SDG\Sprites\sprite_sheet.png</Link>-->
-<!--        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>-->
-<!--      </None>-->
-<!--    </ItemGroup>-->
-<!--    <Target Name="RestoreDotnetTools" BeforeTargets="Restore">-->
-<!--        <Message Text="Restoring dotnet tools" Importance="High"/>-->
-<!--        <Exec Command="dotnet tool restore"/>-->
-<!--    </Target>-->
 </Project>
